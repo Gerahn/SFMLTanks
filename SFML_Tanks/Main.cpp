@@ -27,6 +27,22 @@ int main()
 		printf("no texture");
 	}
 
+	sf::Texture titleBack;
+	if (!titleBack.loadFromFile("howl2.jpg"))
+	{
+		printf("no texture");
+	}
+
+	sf::Texture titleText;
+	if (!titleText.loadFromFile("title.png"))
+	{
+		printf("no texture");
+	}
+
+
+	sf::Sprite sprTitleBack(titleBack);
+	sf::Sprite sprTitleText(titleText);
+
 	//Creating Sprite
 	sf::Sprite* sprite = new sf::Sprite(texture);
 	sprite->setPosition(30, 30);
@@ -105,79 +121,123 @@ int main()
 
 	
 
+	enum GState { Title, Main, Pause, GameOver };
 
-
+	GState gState;
+	gState = Title;
+	int a = 0;
 
 
 	//Delta Time (Clock)
 	sf::Clock deltaClock;
+	sf::Clock titleFadeIn;
+	float tfadein = titleFadeIn.getElapsedTime().asSeconds();
+	bool fadeT = false;
+
 
 	//Main Loop
 	while (window.isOpen())
 	{
-		float dt = deltaClock.restart().asSeconds();
-		//Delta time decouples from frame rate
-
-		if (dt > 1.0f / 60.0f)
-			//If the next frame is higher than 1 in 60 - the cap stops it from going further e,g window is held
+		
+		while (gState == Title)
 		{
-			dt = 1.0f / 60.0f;
-		}
+		
+			//if (tfadein >= 3)
+			//{
+			//	fadeT = true;
+			//}
 
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		//Clear Screen
-		window.clear();
-
-		input.Update(dt);
-
-		//Red Circle Movement
-		for (int i = 0; i < circlecount; i++)
-		{
-			sf::Vector2f movelose((rand() % 5) - 2, (rand() % 5) - 2);
-			sf::Vector2f currentposition(tanks[i].GetPosition());
-
-			tanks[i].SetPosition((movelose * dt * tanks[i].MoveSpeed()) + currentposition);
-		}
-
-		// UPDATE LOOP
-		for (int i = 0; i < circlecount; ++i)
-		{
-			tanks[i].Update(dt);
-		}
-		playerTank.Update(dt);
-
-		//Draw Loop for red circles
-		for (int i = 0; i < circlecount; i++)
-		{
-			if (tanks[i].GetDrawable() != NULL)
+			if (/*fadeT == true &&*/ tfadein >= 0.01f)
 			{
-				window.draw(*tanks[i].GetDrawable());
-				window.draw(tanks[i].getBounds());
+				if (a < 255)
+				{
+					a += 1;
+				}
+
+				titleFadeIn.restart();
+			}
+
+
+			sprTitleText.setColor(sf::Color(255, 255, 255, a));
+			
+			window.draw(sprTitleBack);
+			window.draw(sprTitleText);
+			window.display();
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Return))
+			{
+				gState = Main;
+			}
+
+		}
+
+
+		while (gState == Main)
+		{
+
+			float dt = deltaClock.restart().asSeconds();
+			//Delta time decouples from frame rate
+
+			if (dt > 1.0f / 60.0f)
+				//If the next frame is higher than 1 in 60 - the cap stops it from going further e,g window is held
+			{
+				dt = 1.0f / 60.0f;
+			}
+
+			sf::Event event;
+			while (window.pollEvent(event))
+			{
+				if (event.type == sf::Event::Closed)
+					window.close();
+			}
+
+			//Clear Screen
+			window.clear();
+
+			input.Update(dt);
+
+			//Red Circle Movement
+			for (int i = 0; i < circlecount; i++)
+			{
+				sf::Vector2f movelose((rand() % 5) - 2, (rand() % 5) - 2);
+				sf::Vector2f currentposition(tanks[i].GetPosition());
+
+				tanks[i].SetPosition((movelose * dt * tanks[i].MoveSpeed()) + currentposition);
+			}
+
+			// UPDATE LOOP
+			for (int i = 0; i < circlecount; ++i)
+			{
+				tanks[i].Update(dt);
+			}
+			playerTank.Update(dt);
+
+			//Draw Loop for red circles
+			for (int i = 0; i < circlecount; i++)
+			{
+				if (tanks[i].GetDrawable() != NULL)
+				{
+					window.draw(*tanks[i].GetDrawable());
+					window.draw(tanks[i].getBounds());
+				}
+			}
+
+
+			// Draw player
+			//window.draw(*playerTank.GetDrawable());
+			//window.draw(playerTank.getBounds());
+			playerTank.Draw(&window);
+			window.draw(circleTest);
+			window.draw(circleColSquare);
+
+			window.display();
+
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+			{
+
+				window.close();
 			}
 		}
-
-	
-		// Draw player
-		//window.draw(*playerTank.GetDrawable());
-		//window.draw(playerTank.getBounds());
-		playerTank.Draw(&window);
-		window.draw(circleTest);
-		window.draw(circleColSquare);
-
-		window.display();
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
-		{
-
-			window.close();
-		}
-
 		//EndMainLoop
 
 	}
